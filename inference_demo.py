@@ -34,13 +34,13 @@ def preprocess(text, is_first=True):
             return output
 
     # Remove HTML tags
-    text = re.sub("<.*?>", "", text)
+    text = re.sub(r"<.*?>", "", text)
     # Normalize parentheses
-    text = re.sub("\(+", "(", text)
-    text = re.sub("\)+", ")", text)
+    text = re.sub(r"\(+", "(", text)
+    text = re.sub(r"\)+", ")", text)
 
     # Handle weights in prompts, e.g., (word:1.2)
-    matches = re.findall("\(.*?\)", text)
+    matches = re.findall(r"\(.*?\)", text)
     for match in matches:
         text = text.replace(match, preprocess(match[1:-1], is_first=False))
 
