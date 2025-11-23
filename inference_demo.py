@@ -1,16 +1,25 @@
 import json
 import re
+from typing import List, Sequence, Tuple, Union
 
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.preprocessing.text import tokenizer_from_json
+from tensorflow.keras.preprocessing.text import Tokenizer, tokenizer_from_json
 
 # Configuration
-MAX_SEQUENCE_LENGTH = 50
+MAX_SEQUENCE_LENGTH: int = 50
 
 
-def load_resources(tokenizer_path, model_path):
-    # Load tokenizer from JSON file
+def load_resources(tokenizer_path: str, model_path: str) -> Tuple[Tokenizer, Model]:
+    """Load tokenizer and Keras model for inference.
+
+    Args:
+        tokenizer_path: Path to the saved tokenizer JSON.
+        model_path: Path to the serialized Keras model.
+
+    Returns:
+        A tuple containing the reconstructed tokenizer and compiled model.
+    """
     with open(tokenizer_path, "r", encoding="utf-8") as f:
         tokenizer_data = json.load(f)
         # Depending on how it was saved, we might need json.dumps or pass the dict directly
@@ -22,8 +31,18 @@ def load_resources(tokenizer_path, model_path):
     return tokenizer, model
 
 
-def preprocess(text, is_first=True):
-    # Handle list input recursively
+def preprocess(
+    text: Union[str, List[str]], is_first: bool = True
+) -> Union[str, List[str]]:
+    """Normalize prompt text using the project-specific rules.
+
+    Args:
+        text: Single prompt or list of prompts to normalize.
+        is_first: Internal flag to signal recursive processing for nested segments.
+
+    Returns:
+        Cleaned text string or list of cleaned strings matching the input structure.
+    """
     if is_first:
         if isinstance(text, str):
             pass
@@ -57,7 +76,18 @@ def preprocess(text, is_first=True):
     return text
 
 
-def format_output(prompts, negative_prompts, predictions):
+def format_output(
+    prompts: Sequence[str],
+    negative_prompts: Sequence[str],
+    predictions: Sequence[Tuple[str, float]],
+) -> None:
+    """Pretty-print prompts alongside their predictions.
+
+    Args:
+        prompts: Original prompts.
+        negative_prompts: Paired negative prompts.
+        predictions: Sequence of (label, confidence percentage) tuples.
+    """
     for idx, prompt in enumerate(prompts):
         label, confidence = predictions[idx]
         print("*" * 65)
@@ -66,7 +96,8 @@ def format_output(prompts, negative_prompts, predictions):
         print(f"Prediction: {label} -- {confidence}%")
 
 
-def main():
+def main() -> None:
+    """Run an end-to-end inference demo using saved tokenizer and model."""
     # Paths to your new files
     tokenizer_path = "tokenizer.json"
     model_path = "nsfw_classifier.keras"
